@@ -13,7 +13,15 @@ export default async function Bootstrap() {
 	const args = process.argv;
 	await BuildApps();
 	await CreateAppsPaths();
-	if (!fs.existsSync(".env")) await CreateEnv();
+	
+	// MODIFIED: Automatically create a default .env file if it doesn't exist during build
+	if (!fs.existsSync(".env")) {
+		consola.info("Creating default .env file for build environment.");
+		// Defaulting to a standard port and no Masqr enabled for automated builds
+		fs.writeFileSync(".env", `MASQR=false\nPORT=3000\n`);
+		consola.success("Default environment file created.");
+	}
+	
 	await Updater();
 	consola.success("TerbiumOS bootstrapped successfully");
 	if (!(args.includes("--apps-only") || args.includes("--dev"))) {
@@ -124,6 +132,8 @@ export async function CreateAppsPaths() {
 	return true;
 }
 
+// This function is no longer called during the automated build process
+// but is kept here in case you run the script locally.
 export async function CreateEnv() {
 	const port =
 		(await consola.prompt("Enter a port for the server to run on (3000): ", {
